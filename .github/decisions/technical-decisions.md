@@ -227,9 +227,105 @@ La aplicación es **solo de seguimiento informativo**.
 - [ ] **ADR-011:** Estrategia de reconocimiento OCR (proveedor, precisión, costo)
 - [ ] **ADR-012:** Estrategia de notificaciones (Web Push vs Supabase Realtime)
 - [ ] **ADR-013:** Estrategia de caché y sincronización offline
-- [ ] **ADR-014:** Estructura de base de datos en Supabase (tablas, RLS, índices)
+- [x] **ADR-014:** Estructura de base de datos en Supabase (tablas, RLS, índices) ✅
 - [ ] **ADR-015:** Integración con API-Football (endpoints, rate limiting, fallbacks)
 - [ ] **ADR-016:** Manejo de estados de error y retry logic
+
+---
+
+## ADR-014: Estructura de Base de Datos en Supabase (2026-07-28)
+
+### Contexto
+Necesitamos diseñar el esquema de base de datos que soporte todas las funcionalidades del MVP manteniendo privacidad, escalabilidad y flexibilidad para múltiples proveedores de estadísticas.
+
+### Decisión
+
+#### Tablas de Usuario (con RLS)
+1. **profiles:** Información y preferencias del usuario
+2. **tickets:** Tickets cargados por el usuario
+3. **ticket_files:** Pantallazos y PDFs asociados a tickets
+4. **ticket_selections:** Selecciones individuales dentro de cada ticket
+5. **selection_progress_snapshots:** Historial de progreso minuto a minuto
+
+#### Catálogos Globales (solo lectura para usuarios)
+6. **teams:** Equipos de fútbol normalizados
+7. **players:** Jugadores normalizados
+8. **football_matches:** Partidos referenciados
+9. **markets:** Mercados de apuestas normalizados (11 iniciales)
+
+#### Características clave
+- **UUID** como identificadores primarios
+- **Row Level Security (RLS)** activado en todas las tablas
+- **Campos textuales históricos** además de relaciones normalizadas
+  - Ejemplo: `home_team_name` (texto) + `home_team_id` (FK)
+  - Razón: Preservar contexto original del ticket incluso si equipos cambian
+- **provider_name nullable:** No dependencia de API-Football
+- **Storage privado:** Bucket `ticket-uploads` con políticas por usuario
+  - Ruta: `{user_id}/{ticket_id}/{filename}`
+  - Tipos: JPEG, PNG, WebP, PDF
+  - Límite: 10 MiB por archivo
+- **Trigger automático:** Crea perfil al registrar usuario en auth.users
+- **Función update_updated_at:** Actualiza timestamps automáticamente
+
+#### Estados implementados
+- **Tickets:** draft, needs_review, upcoming, live, completed, won, lost, void, archived
+- **Selecciones:** upcoming, live_tracking, currently_winning, target_reached, lost, finished, void, needs_review
+- **Archivos:** pending, uploaded, processing, processed, failed, deleted
+- **Partidos:** scheduled, postponed, cancelled, first_half, halftime, second_half, extra_time, penalties, finished, suspended, unknown
+
+#### Políticas RLS
+**Tablas de usuario:**
+- SELECT/INSERT/UPDATE/DELETE: Solo datos propios (`auth.uid() = user_id`)
+- ticket_files y ticket_selections: Solo si el ticket pertenece al usuario
+- selection_progress_snapshots: SELECT permitido, escritura solo desde servidor
+
+**Catálogos:**
+- SELECT: Todos los usuarios autenticados
+- INSERT/UPDATE/DELETE: Solo procesos internos (no desde navegador)
+
+**Storage:**
+- SELECT/INSERT/UPDATE/DELETE: Solo archivos en carpeta propia (`{auth.uid()}/...`)
+
+#### Índices creados
+- tickets: user_id, status, created_at
+- ticket_files: ticket_id
+- ticket_selections: ticket_id, match_id, status
+- football_matches: kickoff_at, status
+- players: team_id
+- selection_progress_snapshots: selection_id, recorded_at
+
+### Consecuencias
+
+#### Ventajas
+✅ **Privacidad por diseño:** RLS garantiza aislamiento de datos  
+✅ **No pérdida de contexto:** Campos textuales preservan información original  
+✅ **Independencia de proveedor:** provider_name nullable permite cambios  
+✅ **Escalabilidad:** Separación entre datos de usuario y catálogos globales  
+✅ **Trazabilidad:** selection_progress_snapshots guarda historial completo  
+✅ **Seguridad:** Storage privado con políticas por usuario  
+✅ **Auditoría:** Triggers automáticos para updated_at  
+✅ **Normalización opcional:** Permite tickets sin vincular a catálogos  
+
+#### Limitaciones
+⚠️ **Todavía sin conexión remota:** Migraciones preparadas pero no ejecutadas  
+⚠️ **OCR pendiente:** Campo ocr_raw_text existe pero sin implementación  
+⚠️ **Sincronización pendiente:** Estructura lista pero sin proceso automático  
+⚠️ **Notificaciones pendientes:** Preferencias almacenadas pero sin triggers  
+⚠️ **selection_progress_snapshots no utilizado:** Preparado para futuro  
+
+#### Decisiones pendientes
+- **ADR-011:** Proveedor OCR para llenar ticket_files.ocr_raw_text
+- **ADR-012:** Estrategia de notificaciones (usar profiles.notification_*)
+- **ADR-015:** API de estadísticas definitiva (llenar football_matches, teams, players)
+- Estrategia de sincronización en vivo
+- Política de retención de archivos con contains_personal_data=true
+- Generación automática de tipos TypeScript desde esquema
+
+### Referencias
+- [Documentación completa del esquema](../../docs/database-schema.md)
+- Migración: `supabase/migrations/20260728000001_initial_ticket_futbol_schema.sql`
+- Storage policies: `supabase/migrations/20260728000002_storage_policies.sql`
+- Seed: `supabase/seed.sql` (11 mercados iniciales)
 
 ---
 
@@ -238,3 +334,4 @@ La aplicación es **solo de seguimiento informativo**.
 | Fecha | ADR | Descripción |
 |-------|-----|-------------|
 | 2026-07-28 | ADR-001 a ADR-010 | Decisiones iniciales del MVP |
+| 2026-07-28 | ADR-014 | Estructura completa de base de datos en Supabase |
