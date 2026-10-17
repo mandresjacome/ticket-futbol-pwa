@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { SelectionItem } from '@/components/ticket/SelectionItem';
+import { LiveRefresher } from '@/components/ticket/LiveRefresher';
 import { Card } from '@/components/ui/Card';
 import { getTicketById } from '@/lib/tickets/queries';
 import { Calendar, DollarSign, TrendingUp, ArrowLeft, AlertCircle } from 'lucide-react';
@@ -39,6 +40,7 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
 
   return (
     <main>
+      <LiveRefresher />
       <div className="bg-white border-b border-gray-200 px-4 py-4">
         <Link
           href="/history"

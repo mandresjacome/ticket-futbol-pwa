@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-import { refreshMatches, type TrackedMatch } from '@/lib/tracking/refresh';
 import { evaluateSelection } from '@/lib/tracking/evaluate';
 import type {
   FootballMatch,
@@ -205,44 +204,14 @@ async function selectTickets(id?: string): Promise<TicketRow[]> {
   return (data ?? []) as unknown as TicketRow[];
 }
 
-function collectTrackedMatches(rows: TicketRow[]): TrackedMatch[] {
-  const matches = new Map<string, TrackedMatch>();
-  for (const row of rows) {
-    for (const selection of row.ticket_selections) {
-      const match = one(selection.football_matches);
-      if (!match) continue;
-      matches.set(match.id, {
-        id: match.id,
-        providerMatchId: match.provider_match_id,
-        status: match.status,
-        kickoffAt: match.kickoff_at,
-        lastSyncedAt: match.last_synced_at,
-      });
-    }
-  }
-  return Array.from(matches.values());
-}
-
-// Antes de mostrar, actualiza marcadores de partidos en curso (con tope de consultas a la API).
-async function loadTickets(id?: string): Promise<TicketRow[]> {
-  let rows = await selectTickets(id);
-  try {
-    if (await refreshMatches(collectTrackedMatches(rows))) {
-      rows = await selectTickets(id);
-    }
-  } catch (error) {
-    console.error('loadTickets: refresh failed', error);
-  }
-  return rows;
-}
-
+// Los marcadores se actualizan aparte (ver /api/tracking/refresh) para no bloquear la carga de la página.
 export async function getUserTickets(): Promise<Ticket[]> {
-  return (await loadTickets()).map(mapTicket);
+  return (await selectTickets()).map(mapTicket);
 }
 
 export async function getTicketById(id: string): Promise<Ticket | null> {
   if (!z.uuid().safeParse(id).success) return null;
-  const [row] = await loadTickets(id);
+  const [row] = await selectTickets(id);
   return row ? mapTicket(row) : null;
 }
 

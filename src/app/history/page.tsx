@@ -1,6 +1,7 @@
 import React from 'react';
 import { Header } from '@/components/layout/Header';
 import { TicketCard } from '@/components/ticket/TicketCard';
+import { LiveRefresher } from '@/components/ticket/LiveRefresher';
 import { Card } from '@/components/ui/Card';
 import { getUserTickets } from '@/lib/tickets/queries';
 import { Clock, TrendingUp, TrendingDown, Activity } from 'lucide-react';
@@ -31,6 +32,7 @@ export default async function HistoryPage() {
 
   return (
     <main>
+      <LiveRefresher />
       <Header title="Historial" subtitle="Todos tus tickets" />
 
       <div className="p-4">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Header } from '@/components/layout/Header';
 import { TicketCard } from '@/components/ticket/TicketCard';
+import { LiveRefresher } from '@/components/ticket/LiveRefresher';
 import { Button } from '@/components/ui/Button';
 import { getUserTickets, summarizeTickets } from '@/lib/tickets/queries';
 import { TrendingUp, Activity } from 'lucide-react';
@@ -16,6 +17,7 @@ export default async function HomePage() {
 
   return (
     <main>
+      <LiveRefresher />
       <Header title="Inicio" subtitle="Tus tickets activos" />
 
       <div className="p-4">
