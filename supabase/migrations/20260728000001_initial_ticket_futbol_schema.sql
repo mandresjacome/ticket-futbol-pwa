@@ -7,9 +7,6 @@
 -- EXTENSIONS
 -- ============================================================================
 
--- Enable UUID generation
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- ============================================================================
 -- UTILITY FUNCTIONS
 -- ============================================================================
@@ -76,7 +73,7 @@ CREATE TRIGGER on_auth_user_created
 -- ============================================================================
 
 CREATE TABLE public.tickets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     source_name TEXT,
     ticket_reference TEXT,
@@ -117,7 +114,7 @@ CREATE INDEX idx_tickets_created_at ON public.tickets(created_at DESC);
 -- ============================================================================
 
 CREATE TABLE public.ticket_files (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ticket_id UUID NOT NULL REFERENCES public.tickets(id) ON DELETE CASCADE,
     storage_path TEXT NOT NULL,
     original_filename TEXT,
@@ -156,7 +153,7 @@ CREATE INDEX idx_ticket_files_ticket_id ON public.ticket_files(ticket_id);
 -- ============================================================================
 
 CREATE TABLE public.teams (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     provider_name TEXT,
     provider_team_id TEXT,
     name TEXT NOT NULL,
@@ -181,7 +178,7 @@ CREATE TRIGGER update_teams_updated_at
 -- ============================================================================
 
 CREATE TABLE public.players (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     team_id UUID REFERENCES public.teams(id) ON DELETE SET NULL,
     provider_name TEXT,
     provider_player_id TEXT,
@@ -209,7 +206,7 @@ CREATE INDEX idx_players_team_id ON public.players(team_id);
 -- ============================================================================
 
 CREATE TABLE public.football_matches (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     provider_name TEXT,
     provider_match_id TEXT,
     competition_name TEXT,
@@ -256,7 +253,7 @@ CREATE INDEX idx_football_matches_status ON public.football_matches(status);
 -- ============================================================================
 
 CREATE TABLE public.markets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT NOT NULL UNIQUE,
     canonical_name_es TEXT NOT NULL,
     canonical_name_en TEXT,
@@ -280,7 +277,7 @@ CREATE TRIGGER update_markets_updated_at
 -- ============================================================================
 
 CREATE TABLE public.ticket_selections (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ticket_id UUID NOT NULL REFERENCES public.tickets(id) ON DELETE CASCADE,
     match_id UUID REFERENCES public.football_matches(id) ON DELETE SET NULL,
     market_id UUID REFERENCES public.markets(id) ON DELETE SET NULL,

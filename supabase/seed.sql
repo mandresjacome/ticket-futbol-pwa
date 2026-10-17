@@ -24,7 +24,8 @@ INSERT INTO public.markets (code, canonical_name_es, canonical_name_en, category
 ('player_goals', 'Goles del jugador', 'Player Goals', 'player_stats', 'goals', true, false, true),
 ('player_shots', 'Tiros del jugador', 'Player Shots', 'player_stats', 'shots', true, false, true),
 ('player_shots_on_target', 'Tiros al arco del jugador', 'Player Shots On Target', 'player_stats', 'shots_on_target', true, false, true),
-('goalkeeper_saves', 'Atajadas del portero', 'Goalkeeper Saves', 'player_stats', 'saves', true, false, true);
+('goalkeeper_saves', 'Atajadas del portero', 'Goalkeeper Saves', 'player_stats', 'saves', true, false, true)
+ON CONFLICT (code) DO NOTHING;
 
 -- ============================================================================
 -- NOTES
