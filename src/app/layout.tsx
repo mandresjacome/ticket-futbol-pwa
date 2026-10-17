@@ -18,10 +18,17 @@ export const metadata: Metadata = {
   description:
     'Suba su ticket, vea exactamente cómo avanza cada selección y reciba las alertas que realmente importan.',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'TicketFútbol',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
   },
 };
 
