@@ -5,6 +5,8 @@ export const selectionInputSchema = z.object({
   matchId: z.uuid().nullable(),
   homeTeamName: z.string().trim().min(1, 'Falta el equipo local').max(80),
   awayTeamName: z.string().trim().min(1, 'Falta el equipo visitante').max(80),
+  homeTeamEnglishName: z.string().trim().max(80).nullable(),
+  awayTeamEnglishName: z.string().trim().max(80).nullable(),
   playerName: z.string().trim().max(80).nullable(),
   selectionLabel: z.string().trim().min(1, 'Falta la selección').max(120),
   line: z.number().min(0).max(999).nullable(),

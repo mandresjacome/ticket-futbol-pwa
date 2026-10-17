@@ -92,6 +92,8 @@ export async function createTicket(input: unknown): Promise<CreateTicketResult> 
       event_name: `${selection.homeTeamName} vs ${selection.awayTeamName}`,
       home_team_name: selection.homeTeamName,
       away_team_name: selection.awayTeamName,
+      home_team_english_name: selection.homeTeamEnglishName || null,
+      away_team_english_name: selection.awayTeamEnglishName || null,
       player_name: selection.playerName || null,
       market_raw_text: market.canonical_name_es,
       selection_label: selection.selectionLabel,

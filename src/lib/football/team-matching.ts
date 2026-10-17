@@ -8,7 +8,15 @@ const STOP_WORDS = new Set([
 const TOKEN_ALIASES: Record<string, string> = {
   munich: 'munchen',
   cologne: 'koln',
+  colonia: 'koln',
   nuremberg: 'nurnberg',
+  napoles: 'napoli',
+  bolonia: 'bologna',
+  venecia: 'venezia',
+  florencia: 'fiorentina',
+  turin: 'torino',
+  oporto: 'porto',
+  maguncia: 'mainz',
 };
 const MIN_TEAM_SCORE = 0.7;
 // Marcas de categoría: si la API las trae y el ticket no, es otro equipo (femenino, juvenil o filial).

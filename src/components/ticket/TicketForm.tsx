@@ -20,6 +20,8 @@ type SelectionDraft = {
   marketId: string;
   homeTeamName: string;
   awayTeamName: string;
+  homeEnglish: string;
+  awayEnglish: string;
   playerName: string;
   selectionLabel: string;
   line: string;
@@ -59,6 +61,8 @@ export const TicketForm: React.FC<{
     marketId: '',
     homeTeamName: '',
     awayTeamName: '',
+    homeEnglish: '',
+    awayEnglish: '',
     playerName: '',
     selectionLabel: '',
     line: '',
@@ -79,6 +83,8 @@ export const TicketForm: React.FC<{
           marketId: s.marketId ?? '',
           homeTeamName: s.homeTeamName ?? '',
           awayTeamName: s.awayTeamName ?? '',
+          homeEnglish: s.homeTeamEnglishName ?? '',
+          awayEnglish: s.awayTeamEnglishName ?? '',
           playerName: s.playerName ?? '',
           selectionLabel: s.selectionLabel ?? '',
           line: s.line?.toString() ?? '',
@@ -99,7 +105,11 @@ export const TicketForm: React.FC<{
         if (s.key !== key) return s;
         // Al cambiar los equipos, el partido encontrado automáticamente deja de ser válido.
         const teamsChanged = 'homeTeamName' in patch || 'awayTeamName' in patch;
-        return { ...s, ...patch, ...(teamsChanged ? { matchId: null, competition: '' } : {}) };
+        return {
+          ...s,
+          ...patch,
+          ...(teamsChanged ? { matchId: null, competition: '', homeEnglish: '', awayEnglish: '' } : {}),
+        };
       })
     );
 
@@ -128,6 +138,8 @@ export const TicketForm: React.FC<{
         matchId: s.matchId,
         homeTeamName: s.homeTeamName,
         awayTeamName: s.awayTeamName,
+        homeTeamEnglishName: s.homeEnglish.trim() || null,
+        awayTeamEnglishName: s.awayEnglish.trim() || null,
         playerName: s.playerName.trim() || null,
         selectionLabel: s.selectionLabel,
         line,
