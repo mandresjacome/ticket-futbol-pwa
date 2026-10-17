@@ -1,4 +1,5 @@
 import 'server-only';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { PROVIDER } from '@/lib/football/api-football';
@@ -120,15 +121,17 @@ export async function resolveSelectionMatches(
 const PENDING_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Vincula selecciones guardadas sin partido cuando su partido entra en la ventana de datos; devuelve cuántas vinculó.
-export async function linkPendingSelections(): Promise<number> {
-  const supabase = createClient();
+export async function linkPendingSelections(
+  supabase: SupabaseClient = createClient(),
+  limit = 100
+): Promise<number> {
   const since = new Date(Date.now() - PENDING_MAX_AGE_MS).toISOString();
   const { data, error } = await supabase
     .from('ticket_selections')
     .select('id, home_team_name, away_team_name, home_team_english_name, away_team_english_name')
     .is('match_id', null)
     .gte('created_at', since)
-    .limit(100);
+    .limit(limit);
   if (error) {
     console.error('link pending: query failed', error);
     return 0;
