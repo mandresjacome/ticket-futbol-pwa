@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
+import { PushToggle } from '@/components/profile/PushToggle';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import {
@@ -16,6 +19,29 @@ import {
 } from 'lucide-react';
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const [userInfo, setUserInfo] = useState<{ name: string; email: string } | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      const displayName = user.user_metadata?.display_name;
+      setUserInfo({
+        name: typeof displayName === 'string' && displayName ? displayName : 'Usuario',
+        email: user.email ?? '',
+      });
+    });
+  }, []);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await createClient().auth.signOut();
+    router.replace('/login');
+    router.refresh();
+  };
+
   const [notifications, setNotifications] = useState({
     matchStarting: true,
     selectionAchieved: true,
@@ -37,9 +63,9 @@ export default function ProfilePage() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">
-                Usuario Demo
+                {userInfo?.name ?? 'Cargando...'}
               </h2>
-              <p className="text-sm text-gray-600">demo@ticketfutbol.com</p>
+              <p className="text-sm text-gray-600">{userInfo?.email}</p>
             </div>
           </div>
         </Card>
@@ -49,6 +75,7 @@ export default function ProfilePage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
             Notificaciones
           </h3>
+          <PushToggle />
           <Card>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -202,7 +229,8 @@ export default function ProfilePage() {
         <Button
           variant="outline"
           fullWidth
-          onClick={() => alert('Función de cierre de sesión en desarrollo')}
+          disabled={signingOut}
+          onClick={handleSignOut}
         >
           <LogOut className="mr-2" size={20} />
           Cerrar sesión

@@ -22,7 +22,7 @@ export type FootballMatch = {
   homeTeam: Team;
   awayTeam: Team;
   competition: string;
-  scheduledAt: Date;
+  scheduledAt?: Date;
   status: 'scheduled' | 'live' | 'finished' | 'postponed' | 'cancelled';
   currentMinute?: number;
   homeScore?: number;

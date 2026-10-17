@@ -224,11 +224,11 @@ La aplicación es **solo de seguimiento informativo**.
 
 ## Próximas Decisiones Pendientes
 
-- [ ] **ADR-011:** Estrategia de reconocimiento OCR (proveedor, precisión, costo)
+- [x] **ADR-011:** Estrategia de reconocimiento OCR ✅ (Gemini, ver abajo)
 - [ ] **ADR-012:** Estrategia de notificaciones (Web Push vs Supabase Realtime)
 - [ ] **ADR-013:** Estrategia de caché y sincronización offline
 - [x] **ADR-014:** Estructura de base de datos en Supabase (tablas, RLS, índices) ✅
-- [ ] **ADR-015:** Integración con API-Football (endpoints, rate limiting, fallbacks)
+- [~] **ADR-015:** Integración con API-Football ✅ parcial (resolución de partidos; seguimiento en vivo pendiente)
 - [ ] **ADR-016:** Manejo de estados de error y retry logic
 
 ---
@@ -329,9 +329,58 @@ Necesitamos diseñar el esquema de base de datos que soporte todas las funcional
 
 ---
 
+## ADR-011: Reconocimiento de tickets con Gemini (2026-10-17)
+
+### Contexto
+Un OCR clásico solo devuelve texto; interpretar partidos, mercados y cuotas de cada casa de apuestas requiere reglas frágiles. El usuario ya dispone de acceso a Gemini (`gemini-2.5-flash`) por otro proyecto.
+
+### Decisión
+- Usar un modelo de visión (Gemini, SDK oficial `@google/genai`) que devuelve JSON con los datos del ticket.
+- El proveedor se invoca solo desde el servidor (`src/lib/ocr/gemini.ts`, ruta `/api/tickets/extract`). Clave y modelo en `GEMINI_API_KEY` y `GEMINI_MODEL`.
+- Se aceptan hasta 5 capturas del mismo ticket; el modelo las une y el servidor elimina duplicados.
+- Las imágenes se procesan en memoria y **no se almacenan**.
+- El resultado solo rellena un formulario que el usuario debe confirmar o corregir antes de guardar.
+- La fecha del partido es opcional: muchos cupones no la muestran.
+
+### Consecuencias
+✅ Alta precisión sin escribir parsers por casa de apuestas  
+✅ Proveedor aislado: se puede cambiar sin tocar el resto  
+⚠️ Las imágenes se envían a un tercero; la interfaz lo avisa. Pendiente verificar términos de datos de la capa gratuita  
+⚠️ Sin límite de uso por usuario: puede agotar la cuota compartida  
+⚠️ Fecha y hora de partidos pendientes de resolver con la API de estadísticas (ADR-015)
+
+---
+
+## ADR-015: Integración con API-Football Free (2026-10-17)
+
+### Contexto
+Se probó el plan gratuito con la clave real (acceso directo, `x-apisports-key`).
+
+### Hallazgos verificados
+- 100 consultas por día para toda la app.
+- `fixtures?date=` solo permite ayer, hoy y mañana (devuelve todos los partidos del mundo de ese día).
+- `fixtures?live=all`, `fixtures/statistics` y `fixtures/players` responden con datos actuales.
+- Bloqueado en el plan gratuito: `team`+`season` 2026 (solo 2022-2024), `next` y `last`.
+
+### Decisión
+- Resolver cada selección contra los partidos de la ventana de 3 días; si no hay coincidencia clara, la fecha queda vacía y el usuario puede completarla.
+- Caché de partidos por día en `api_fixture_day_cache` (TTL 3 h) y contador en `api_usage` con límite de 90 al día.
+- Los nombres se comparan por tokens (sin tildes ni términos genéricos); Gemini aporta el nombre en inglés. Ante empate entre partidos no se asigna ninguno.
+- Escritura en `teams` y `football_matches` solo desde el servidor con `SUPABASE_SERVICE_ROLE_KEY`.
+
+### Consecuencias
+✅ Una consulta diaria sirve a todos los usuarios  
+⚠️ Tickets con partidos a más de 2 días no resuelven fecha todavía  
+⚠️ 100 consultas/día no escalan a muchos usuarios; evaluar plan de pago solo cuando sea necesario  
+⚠️ Pendiente: reintentos automáticos y seguimiento en vivo
+
+---
+
 ## Historial de Cambios
 
 | Fecha | ADR | Descripción |
 |-------|-----|-------------|
 | 2026-07-28 | ADR-001 a ADR-010 | Decisiones iniciales del MVP |
 | 2026-07-28 | ADR-014 | Estructura completa de base de datos en Supabase |
+| 2026-10-17 | ADR-011 | Reconocimiento de tickets con Gemini |
+| 2026-10-17 | ADR-015 | Integración con API-Football Free (resolución de partidos) |

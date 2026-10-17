@@ -2,13 +2,15 @@ import React from 'react';
 import { Header } from '@/components/layout/Header';
 import { TicketCard } from '@/components/ticket/TicketCard';
 import { Button } from '@/components/ui/Button';
-import { mockTickets, mockTicketSummary } from '@/lib/mock-data';
+import { getUserTickets, summarizeTickets } from '@/lib/tickets/queries';
 import { TrendingUp, Activity } from 'lucide-react';
 import Link from 'next/link';
 
-export default function HomePage() {
-  // Obtener tickets activos (live y pending)
-  const activeTickets = mockTickets.filter(
+export default async function HomePage() {
+  const tickets = await getUserTickets();
+  const summary = summarizeTickets(tickets);
+  // Tickets activos (en vivo y pendientes)
+  const activeTickets = tickets.filter(
     (ticket) => ticket.status === 'live' || ticket.status === 'pending'
   );
 
@@ -33,7 +35,7 @@ export default function HomePage() {
               <span className="text-sm text-gray-600">Tickets activos</span>
             </div>
             <div className="text-2xl font-bold text-gray-900">
-              {mockTicketSummary.live + mockTicketSummary.pending}
+              {summary.live + summary.pending}
             </div>
           </div>
 
@@ -43,7 +45,7 @@ export default function HomePage() {
               <span className="text-sm text-gray-600">Ganados</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {mockTicketSummary.won}
+              {summary.won}
             </div>
           </div>
         </div>

@@ -73,6 +73,12 @@ export const SelectionItem: React.FC<SelectionItemProps> = ({
           <span className="ml-1 font-bold text-gray-900">{odds.toFixed(2)}</span>
         </div>
       </div>
+
+      {status !== 'upcoming' && (
+        <p className="mt-2 text-xs text-gray-500">
+          Estado estimado. La liquidación oficial la define tu casa de apuestas.
+        </p>
+      )}
     </div>
   );
 };

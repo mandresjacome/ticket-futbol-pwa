@@ -31,11 +31,12 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
   );
 
   // Formatear fecha
-  const dateFormatter = new Intl.DateTimeFormat('es', {
+  const dateFormatter = new Intl.DateTimeFormat('es-CO', {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'America/Bogota',
   });
 
   return (
@@ -125,7 +126,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
           <div>
             <div className="text-xs text-gray-600">Apostado</div>
             <div className="text-sm font-semibold text-gray-900">
-              ${ticket.stake.toLocaleString()}
+              ${ticket.stake.toLocaleString('es-CO')}
             </div>
           </div>
           <div className="text-center">
@@ -137,7 +138,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
           <div className="text-right">
             <div className="text-xs text-gray-600">Posible ganancia</div>
             <div className="text-sm font-semibold text-green-600">
-              ${ticket.potentialWin.toLocaleString()}
+              ${ticket.potentialWin.toLocaleString('es-CO')}
             </div>
           </div>
         </div>
